@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "Google account creation",
   "main": "lib/index.js",
-  "repository": "https://git.pyrosec.gg/project-ghost/google-account",
+  "repository": "https://github.com/pyrosec/google-account",
   "author": "project-ghost",
   "license": "MIT",
   "private": false,
