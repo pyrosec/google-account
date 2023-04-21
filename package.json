@@ -17,7 +17,7 @@
   "dependencies": {
     "@faker-js/faker": "^7.6.0",
     "axios": "^1.2.0",
-    "base-puppeteer": "git+https://git.pyrosec.gg/project-ghost/base-puppeteer.git",
+    "base-puppeteer": "https://github.com/pyrosec/base-puppeteer",
     "body-parser": "^1.20.1",
     "change-case": "^4.1.2",
     "express": "^4.18.2",
@@ -33,7 +33,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "querystring": "^0.2.1",
     "setimmediate": "^1.0.5",
-    "textverified": "git+https://git.pyrosec.gg/project-ghost/textverified",
+    "textverified": "https://github.com/pyrosec/textverified",
     "totp-generator": "^0.0.14",
     "user-agents": "^1.0.1208",
     "winston": "^3.8.2",
