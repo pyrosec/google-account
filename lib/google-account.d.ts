@@ -5,6 +5,7 @@ export declare class GoogleAccountClient extends BasePuppeteer {
     username: string;
     name: string;
     password: string;
+    appPassword: string;
     recoveryEmail: string;
     totpSecret: string;
     cookies: any[];
@@ -24,6 +25,11 @@ export declare class GoogleAccountClient extends BasePuppeteer {
     }): Promise<{
         success: boolean;
     }>;
+    toMuttrc({ username, password, name }: {
+        username: any;
+        password: any;
+        name: any;
+    }): Promise<void>;
     needsPassword(): Promise<boolean>;
     enterPassword(): Promise<void>;
     changePassword({ newPassword }: {
@@ -39,10 +45,12 @@ export declare class GoogleAccountClient extends BasePuppeteer {
     }>;
     enable2fa(): Promise<void>;
     getTotpSecret(): Promise<any>;
-    createAccount({ username, save, enable2fa, recovery, name, password, proxyServer }: {
+    enableAppPassword(): Promise<any>;
+    createAccount({ username, save, enable2fa, appPassword, recovery, name, password, proxyServer }: {
         username: any;
         save: any;
         enable2fa: any;
+        appPassword: any;
         recovery: any;
         name: any;
         password: any;

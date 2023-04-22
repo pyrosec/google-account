@@ -71,6 +71,7 @@ export class GoogleAccountClient extends BasePuppeteer {
   public username: string;
   public name: string;
   public password: string;
+  public appPassword: string;
   public recoveryEmail: string;
   public totpSecret: string;
   public cookies: any[];
@@ -81,6 +82,12 @@ export class GoogleAccountClient extends BasePuppeteer {
       name: 'gapps ' + this.email,
       totp: this.totpSecret,
       uris: ['androidapp://com.google.android.gms', 'https://google.com']
+    } as any);
+    if (this.appPassword) await super.saveToBitwarden({
+      username: this.email,
+      password: this.appPassword,
+      name: this.email + ' app password',
+      uris: ['androidapp://eu.faircode.email']
     } as any);
     return { success: true };
   }
@@ -144,8 +151,6 @@ export class GoogleAccountClient extends BasePuppeteer {
     await page.waitForSelector('div.UI');
     return { success: true };
   }
-  /*
-  // only oauth works now
   async toMuttrc({ username, password, name }) {
     username = username || this.email.split('@').slice(0, -1).join('@');
     const appassword = this.appPassword || password;
@@ -156,7 +161,6 @@ export class GoogleAccountClient extends BasePuppeteer {
     const muttrcPath = path.join(muttDirectory, 'muttrc');
     await fs.writeFile(muttrcPath, `set from = "${username}@gmail.com"\nset realname = "${name}"\nset imap_user = "${username}@gmail.com"\nset imap_pass = "${appassword}"\nset smtp_url = "smtps://${username}@smtp.gmail.com"\nset smtp_pass = "${password}"\nset folder = "imaps://imap.gmail.com/"\nset spoolfile = "+INBOX"\nset postponed = "+[Gmail]/Drafts"\nset record = "+[Gmail]/Sent Mail"\nset trash = "+[Gmail]/Trash"`);
   }
- */
   async needsPassword() {
     const page = this._page;
     return Boolean(await page.evaluate(() => Boolean(document.querySelector('input[type="password"]')) && Boolean(document.querySelector('div[role="presentation"] div[data-is-consent="false"] button'))));
@@ -295,8 +299,6 @@ export class GoogleAccountClient extends BasePuppeteer {
     this.totpSecret = totpSecret;
     return totpSecret;
   }
-  /*
-   // only oauth works now
   async enableAppPassword() {
     const page = this._page;
     await page.goto("https://myaccount.google.com/apppasswords");
@@ -325,11 +327,11 @@ export class GoogleAccountClient extends BasePuppeteer {
     this.appPassword = text;
     return text;
   }
-  */
   async createAccount({
     username,
     save,
     enable2fa,
+    appPassword,
     recovery,
     name,
     password,
@@ -432,6 +434,9 @@ export class GoogleAccountClient extends BasePuppeteer {
     await timeout(5000);
     if (enable2fa) {
       await this.enable2fa();
+    }
+    if (appPassword) {
+      await this.enableAppPassword();
     }
     if (save) await this.saveToBitwarden();
     return { success: true };
