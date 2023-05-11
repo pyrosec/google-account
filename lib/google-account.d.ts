@@ -46,6 +46,7 @@ export declare class GoogleAccountClient extends BasePuppeteer {
     enable2fa(): Promise<void>;
     getTotpSecret(): Promise<any>;
     enableAppPassword(): Promise<any>;
+    selectUS(): Promise<void>;
     createAccount({ username, save, enable2fa, appPassword, recovery, name, password, proxyServer }: {
         username: any;
         save: any;

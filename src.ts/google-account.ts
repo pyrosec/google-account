@@ -327,6 +327,14 @@ export class GoogleAccountClient extends BasePuppeteer {
     this.appPassword = text;
     return text;
   }
+  async selectUS() {
+    await this._page.evaluate(async () => {
+      (document.querySelector('div#countryList > div > div') as any).click();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      const last = (ary) => ary[ary.length - 1];
+      last([].slice.call(document.querySelectorAll('div#countryList li')).filter((v) => v.innerText.match(/\(\+1\)/))).click();
+   });
+  }
   async createAccount({
     username,
     save,
@@ -374,6 +382,7 @@ export class GoogleAccountClient extends BasePuppeteer {
       return Boolean(document.querySelector("input#phoneNumberId"));
     });
     if (isVerify) {
+      await this.selectUS();
       const otp = await this.getOTP(
         async (number) => {
           await page.type("input#phoneNumberId", number);
@@ -425,12 +434,14 @@ export class GoogleAccountClient extends BasePuppeteer {
       const els: any = document.querySelectorAll(
         'span div:nth-child(2) div:nth-child(1) div:nth-child(1) div[role="radio"]'
       );
+      if ([].slice.call(els).length < 6) return;
       els[1].click();
       els[3].click();
       els[5].click();
       const buttons = document.querySelectorAll("button");
       buttons[3].click();
     });
+    await new Promise((resolve) => {});
     await timeout(5000);
     if (enable2fa) {
       await this.enable2fa();
@@ -527,6 +538,7 @@ export class GoogleAccountClient extends BasePuppeteer {
       return Boolean(document.querySelector('input[type="tel"]#deviceAddress'));
     });
     if (isVerifyOTP) {
+      await this.selectUS();
       const otp = await this.getOTP(
         async (number) => {
           await page.type('input[type="tel"]#deviceAddress', number);
