@@ -348,7 +348,7 @@ export class GoogleAccountClient extends BasePuppeteer {
     let page = this._page;
     await page.goto("https://accounts.google.com");
     this.logger.info("load https://accounts.google.com");
-    await timeout(5000);
+    await page.waitForSelector('button');
     await page.evaluate(async () => {
       document.querySelectorAll("button")[3].click();
       await new Promise((resolve) => setTimeout(resolve, 50));
