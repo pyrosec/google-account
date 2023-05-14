@@ -441,7 +441,6 @@ export class GoogleAccountClient extends BasePuppeteer {
       const buttons = document.querySelectorAll("button");
       buttons[3].click();
     });
-    await new Promise((resolve) => {});
     await timeout(5000);
     if (enable2fa) {
       await this.enable2fa();
