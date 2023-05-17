@@ -10,6 +10,7 @@ import { faker } from "@faker-js/faker";
 import { getLogger } from "./logger";
 import yargs from "yargs";
 import { camelCase } from "change-case";
+import { SmsPinVerifyClient } from "smspinverify";
 
 const logger = getLogger();
 
@@ -64,6 +65,60 @@ const getOTP = async function (token, fn, goBack) {
   return code;
 };
 
+const getOTPFromSmsPinVerify = async function (token, fn, goBack) {
+  const smspinverify = new SmsPinVerifyClient({
+    apiKey: token,
+  });
+  const code = await (async () => {
+    while (true) {
+      const verification = await (async () => {
+        while (true) {
+          try {
+            return {
+              number: await smspinverify.getNumber({
+                country: 'USA',
+		app: 'Gmail USA'
+              })
+	    };
+          } catch (e) {
+            this.logger.error(e);
+            await timeout(30000);
+            this.logger.error("retry");
+          }
+        }
+      })();
+      const poll = async () => {
+        await fn(verification.number);
+        await timeout(1000);
+        for (let i = 0; i < 10; i++) {
+          this.logger.info("poll OTP ...");
+          const status = await smspinverify.getSms({
+            country: 'USA',
+	    app: 'Gmail USA',
+	    number: verification.number
+	  });
+	  const match = status.match(/(?:G-\d+)/g);
+	  if (match) {
+            const [ code ] = match;
+            this.logger.info("got OTP: " + code);
+            return code;
+          }
+          await timeout(1000);
+        }
+        return false;
+      };
+      const result = await poll();
+      if (!result) {
+        await goBack();
+        await timeout(1000);
+        continue;
+      }
+      return result;
+    }
+  })();
+  return code;
+};
+
 
 export class GoogleAccountClient extends BasePuppeteer {
   public textVerifiedToken: string;
@@ -93,6 +148,9 @@ export class GoogleAccountClient extends BasePuppeteer {
   }
   async getOTP(fn, goBack) {
     return await getOTP.call(this, this.textVerifiedToken || process.env.TEXTVERIFIED_TOKEN, fn, goBack);
+  }
+  async getOTPFromSmsPinVerify(fn, goBack) {
+    return await getOTPFromSmsPinVerify.call(this, process.env.SMSPINVERIFY_TOKEN, fn, goBack);
   }
   async goToForwarding() {
     const page = this._page;
@@ -208,7 +266,8 @@ export class GoogleAccountClient extends BasePuppeteer {
     await page.click('button#ib2');
     return { success: true };
   }
-  async enable2fa() {
+  async enable2fa({ smspinverify }) {
+    const fetchOTP = smspinverify ? this.getOTP.bind(this) : this.getOTPFromSmsPinVerify.bind(this);
     const page = this._page;
     this.logger.info("open enroll 2FA");
     await page.goto(
@@ -229,7 +288,7 @@ export class GoogleAccountClient extends BasePuppeteer {
       return {"done": "true", "message": "2fa already enabled"}
     }
     */
-    const number = await this.getOTP(
+    const number = await fetchOTP(
       async (number) => {
         await page.click('input[type="tel"]', { clickCount: 3 });
         await page.type('input[type="tel"]', number);
@@ -337,6 +396,7 @@ export class GoogleAccountClient extends BasePuppeteer {
   }
   async createAccount({
     username,
+    smspinverify,
     save,
     enable2fa,
     appPassword,
@@ -345,6 +405,7 @@ export class GoogleAccountClient extends BasePuppeteer {
     password,
     proxyServer
   }) {
+    const fetchOTP = smspinverify ? this.getOTP.bind(this) : this.getOTPFromSmsPinVerify.bind(this);
     name = name || faker.name.fullName();
     username = username || faker.internet.userName(...name.split(/\s+/));
     password = password || generate({ numbers: true, length: 16 });
@@ -383,7 +444,7 @@ export class GoogleAccountClient extends BasePuppeteer {
     });
     if (isVerify) {
       await this.selectUS();
-      const otp = await this.getOTP(
+      const otp = await fetchOTP(
         async (number) => {
           await page.type("input#phoneNumberId", number);
           await page.click("button");
@@ -443,7 +504,7 @@ export class GoogleAccountClient extends BasePuppeteer {
     });
     await timeout(5000);
     if (enable2fa) {
-      await this.enable2fa();
+      await this.enable2fa({ smspinverify });
     }
     if (appPassword) {
       await this.enableAppPassword();
@@ -491,7 +552,8 @@ export class GoogleAccountClient extends BasePuppeteer {
       threads
     };
   }
-  async login({ email, password, recoveryEmail, totpSecret }) {
+  async login({ email, password, recoveryEmail, totpSecret, smspinverify }) {
+    const fetchOTP = smspinverify ? this.getOTP.bind(this) : this.getOTPFromSmsPinVerify.bind(this);
     // store email password to be serialized when flow is complete
     this.email = email = email || this.email
     this.username = this.email.split('@')[0];
@@ -538,7 +600,7 @@ export class GoogleAccountClient extends BasePuppeteer {
     });
     if (isVerifyOTP) {
       await this.selectUS();
-      const otp = await this.getOTP(
+      const otp = await fetchOTP(
         async (number) => {
           await page.type('input[type="tel"]#deviceAddress', number);
           await page.click('input[type="submit"]');
