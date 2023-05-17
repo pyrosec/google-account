@@ -473,6 +473,7 @@ export class GoogleAccountClient extends BasePuppeteer {
     } 
     }
     this.logger.info("waiting ...");
+    await page.waitForSelector('input[name="recoveryEmail"]');
     await timeout(5000);
     recovery = recovery || username + "12@outllok.com";
     await page.evaluate((recovery) => {
