@@ -65,7 +65,7 @@ const getOTP = async function (token, fn, goBack) {
   return code;
 };
 
-const getOTPFromSmsPinVerify = async function (token, fn, goBack) {
+const getOTPFromSmsPinVerify = async function (token, fn, goBack, app: string = 'Gmail USA', ticks: number = 10) {
   const smspinverify = new SmsPinVerifyClient({
     apiKey: token,
   });
@@ -77,7 +77,7 @@ const getOTPFromSmsPinVerify = async function (token, fn, goBack) {
             return {
               number: await smspinverify.getNumber({
                 country: 'USA',
-		app: 'Gmail USA'
+		app
               })
 	    };
           } catch (e) {
@@ -90,14 +90,14 @@ const getOTPFromSmsPinVerify = async function (token, fn, goBack) {
       const poll = async () => {
         await fn(verification.number);
         await timeout(1000);
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < ticks; i++) {
           this.logger.info("poll OTP ...");
           const status = await smspinverify.getSms({
             country: 'USA',
-	    app: 'Gmail USA',
+	    app,
 	    number: verification.number
 	  });
-	  const match = status.match(/(?:G-\d+)/g);
+	  const match = status.match(/(?:\d{6})/g);
 	  if (match) {
             const code = match[0].replace('G-', '');
             this.logger.info("got OTP: " + code);
@@ -149,8 +149,8 @@ export class GoogleAccountClient extends BasePuppeteer {
   async getOTP(fn, goBack) {
     return await getOTP.call(this, this.textVerifiedToken || process.env.TEXTVERIFIED_TOKEN, fn, goBack);
   }
-  async getOTPFromSmsPinVerify(fn, goBack) {
-    return await getOTPFromSmsPinVerify.call(this, process.env.SMSPINVERIFY_TOKEN, fn, goBack);
+  async getOTPFromSmsPinVerify(fn, goBack, app: string = "Gmail USA") {
+    return await getOTPFromSmsPinVerify.call(this, process.env.SMSPINVERIFY_TOKEN, fn, goBack, app);
   }
   async goToForwarding() {
     const page = this._page;
@@ -266,8 +266,52 @@ export class GoogleAccountClient extends BasePuppeteer {
     await page.click('button#ib2');
     return { success: true };
   }
+  async verifyVoice({ city }) {
+    const fetchOTP = this.getOTPFromSmsPinVerify.bind(this);
+    await this.goto({ url: 'https://voice.google.com/u/0/signup' });
+    await this.timeout({ n: 1000 });
+    const page = this._page;
+    const selected = await page.evaluate(async () => {
+      while (true) {
+        let selector = 'button.mat-flat-button';
+	if (document.querySelector(selector)) return selector;
+	selector = 'input#searchAccountPhoneSearchBar';
+	if (document.querySelector(selector)) return selector;
+	await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+    });
+    if (selected === 'button.mat-flat-button') {
+      await this.click({ selector: 'button.mat-flat-button' });
+      await this.waitForSelector({ selector: 'input#searchAccountPhoneSearchBar' });
+    }
+    await page.type('input#searchAccountPhoneSearchBar', city, { delay: 200 });
+    await this.waitForSelector({ selector: 'button.mat-focus-indicator.mat-button.mat-button-base.mat-primary' });
+    await this.click({ selector: 'button.mat-focus-indicator.mat-button.mat-button-base.mat-primary' });
+    await this.waitForSelector({ selector: 'button[mat-flat-button]' });
+    await this.click({ selector: 'button[mat-flat-button]' });
+    await this.waitForSelector({ selector: 'input[mat-input]' });
+    const otp = await fetchOTP(async (number) => {
+      await page.type('input[mat-input]', String(number), { delay: 100 });
+      await this.timeout({ n: 100 });
+      await this.click({ selector: 'button[aria-label="Send code"]' });
+    }, async () => {
+      await this.click({ selector: 'button[aria-label="Cancel"]' });
+      await this.timeout({ n: 100 });
+      await this.click({ selector: 'button[mat-flat-button]' });
+      await this.timeout({ n: 100 });
+    }, "Google Voice", 50);
+    await page.type('input[name="verify-code"]', otp, { delay: 100 });
+    await this.waitForSelector({ selector: 'md-dialog-actions gv-flat-button button[aria-label="Verify"]' });
+    await this.timeout({ n: 400 });
+    await this.click({ selector: 'md-dialog-actions gv-flat-button button[aria-label="Verify"]' });
+    await this.waitForSelector({ selector: 'button[aria-label="Finish"]' });
+    await this.timeout({ n: 400 });
+    await this.click({ selector: 'button[aria-label="Finish"]' });
+    await this.waitForSelector({ selector: 'button[aria-label="Settings"]' });
+    await this.click({ selector: 'button[aria-label="Settings"]' });
+  }
   async enable2fa({ smspinverify }) {
-    const fetchOTP = smspinverify ? this.getOTP.bind(this) : this.getOTPFromSmsPinVerify.bind(this);
+    const fetchOTP = smspinverify ? this.getOTPFromSmsPinVerify.bind(this) : this.getOTP.bind(this);
     const page = this._page;
     this.logger.info("open enroll 2FA");
     await page.goto(
@@ -403,9 +447,10 @@ export class GoogleAccountClient extends BasePuppeteer {
     recovery,
     name,
     password,
-    proxyServer
+    proxyServer,
+    city
   }) {
-    const fetchOTP = smspinverify ? this.getOTP.bind(this) : this.getOTPFromSmsPinVerify.bind(this);
+    const fetchOTP = smspinverify ? this.getOTPFromSmsPinVerify.bind(this) : this.getOTP.bind(this);
     name = name || faker.name.fullName();
     username = username || faker.internet.userName(...name.split(/\s+/));
     password = password || generate({ numbers: true, length: 16 });
@@ -511,6 +556,9 @@ export class GoogleAccountClient extends BasePuppeteer {
       await this.enableAppPassword();
     }
     if (save) await this.saveToBitwarden();
+    if (city) {
+      await this.verifyVoice({ city });
+    }
     return { success: true };
   }
   async goToVoiceMessages() {
@@ -554,7 +602,7 @@ export class GoogleAccountClient extends BasePuppeteer {
     };
   }
   async login({ email, password, recoveryEmail, totpSecret, smspinverify }) {
-    const fetchOTP = smspinverify ? this.getOTP.bind(this) : this.getOTPFromSmsPinVerify.bind(this);
+    const fetchOTP = smspinverify ? this.getOTPFromSmsPinVerify.bind(this) : this.getOTP.bind(this);
     // store email password to be serialized when flow is complete
     this.email = email = email || this.email
     this.username = this.email.split('@')[0];

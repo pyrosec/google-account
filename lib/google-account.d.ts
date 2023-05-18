@@ -13,7 +13,7 @@ export declare class GoogleAccountClient extends BasePuppeteer {
         success: boolean;
     }>;
     getOTP(fn: any, goBack: any): Promise<any>;
-    getOTPFromSmsPinVerify(fn: any, goBack: any): Promise<any>;
+    getOTPFromSmsPinVerify(fn: any, goBack: any, app?: string): Promise<any>;
     goToForwarding(): Promise<void>;
     forwardEmail({ to }: {
         to: any;
@@ -44,13 +44,16 @@ export declare class GoogleAccountClient extends BasePuppeteer {
     }): Promise<{
         success: boolean;
     }>;
+    verifyVoice({ city }: {
+        city: any;
+    }): Promise<void>;
     enable2fa({ smspinverify }: {
         smspinverify: any;
     }): Promise<void>;
     getTotpSecret(): Promise<any>;
     enableAppPassword(): Promise<any>;
     selectUS(): Promise<void>;
-    createAccount({ username, smspinverify, save, enable2fa, appPassword, recovery, name, password, proxyServer }: {
+    createAccount({ username, smspinverify, save, enable2fa, appPassword, recovery, name, password, proxyServer, city }: {
         username: any;
         smspinverify: any;
         save: any;
@@ -60,6 +63,7 @@ export declare class GoogleAccountClient extends BasePuppeteer {
         name: any;
         password: any;
         proxyServer: any;
+        city: any;
     }): Promise<{
         Done: string;
         success?: undefined;
