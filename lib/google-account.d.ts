@@ -13,7 +13,7 @@ export declare class GoogleAccountClient extends BasePuppeteer {
         success: boolean;
     }>;
     getOTP(fn: any, goBack: any): Promise<any>;
-    getOTPFromSmsPinVerify(fn: any, goBack: any, app?: string): Promise<any>;
+    getOTPFromSmsPinVerify(fn: any, goBack: any, app?: string, ticks?: number): Promise<any>;
     goToForwarding(): Promise<void>;
     forwardEmail({ to }: {
         to: any;

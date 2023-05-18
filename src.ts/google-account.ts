@@ -149,8 +149,8 @@ export class GoogleAccountClient extends BasePuppeteer {
   async getOTP(fn, goBack) {
     return await getOTP.call(this, this.textVerifiedToken || process.env.TEXTVERIFIED_TOKEN, fn, goBack);
   }
-  async getOTPFromSmsPinVerify(fn, goBack, app: string = "Gmail USA") {
-    return await getOTPFromSmsPinVerify.call(this, process.env.SMSPINVERIFY_TOKEN, fn, goBack, app);
+  async getOTPFromSmsPinVerify(fn, goBack, app: string = "Gmail USA", ticks: number = 10) {
+    return await getOTPFromSmsPinVerify.call(this, process.env.SMSPINVERIFY_TOKEN, fn, goBack, app, ticks);
   }
   async goToForwarding() {
     const page = this._page;
