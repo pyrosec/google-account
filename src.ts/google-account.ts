@@ -99,7 +99,7 @@ const getOTPFromSmsPinVerify = async function (token, fn, goBack) {
 	  });
 	  const match = status.match(/(?:G-\d+)/g);
 	  if (match) {
-            const [ code ] = match;
+            const code = match[0].replace('G-', '');
             this.logger.info("got OTP: " + code);
             return code;
           }
