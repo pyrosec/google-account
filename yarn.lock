@@ -285,7 +285,7 @@ balanced-match@^1.0.0:
 
 "base-puppeteer@https://github.com/pyrosec/base-puppeteer":
   version "0.1.0"
-  resolved "https://github.com/pyrosec/base-puppeteer#9aca83959f3950a2e5c01c72ebe147896e3a4aff"
+  resolved "https://github.com/pyrosec/base-puppeteer#461ff99a3c0707549663afcdeddd187c51966102"
   dependencies:
     "@faker-js/faker" "^7.6.0"
     axios "^1.3.6"
@@ -297,6 +297,7 @@ balanced-match@^1.0.0:
     mkdirp "^1.0.4"
     morgan "^1.10.0"
     prettier "^2.8.0"
+    proxies-fo "https://github.com/pyrosec/proxies-fo"
     proxy6 "https://github.com/pyrosec/proxy6"
     puppeteer "^19.10.1"
     puppeteer-extra "^3.3.6"
@@ -1482,6 +1483,15 @@ progress@2.0.3:
   resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.3.tgz#7e8cf8d8f5b8f239c1bc68beb4eb78567d572ef8"
   integrity sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==
 
+"proxies-fo@https://github.com/pyrosec/proxies-fo":
+  version "0.1.0"
+  resolved "https://github.com/pyrosec/proxies-fo#df3fff5afc7d196467a63f235bf67e4d1491c205"
+  dependencies:
+    change-case "^4.1.2"
+    node-fetch "2"
+    winston "^3.8.2"
+    yargs "^17.7.2"
+
 proxy-addr@~2.0.7:
   version "2.0.7"
   resolved "https://registry.yarnpkg.com/proxy-addr/-/proxy-addr-2.0.7.tgz#f19fe69ceab311eeb94b42e70e8c2070f9ba1025"
@@ -2076,9 +2086,9 @@ upper-case@^2.0.2:
     tslib "^2.0.3"
 
 user-agents@^1.0.1208, user-agents@^1.0.1211:
-  version "1.0.1387"
-  resolved "https://registry.yarnpkg.com/user-agents/-/user-agents-1.0.1387.tgz#bbcb5893473a52ae7ce579cfed4ccb6328000fb3"
-  integrity sha512-6eSxKlvJHx/svSnUhLBSM+KB5sdOYqK2hWpbBWao/RFRByNNBWx4Si4/ph6Ohlg/fsuF+16nn8FYqw7LOrBh/w==
+  version "1.0.1388"
+  resolved "https://registry.yarnpkg.com/user-agents/-/user-agents-1.0.1388.tgz#59193d3df29aa78cfe66e77d3124392d40ee2730"
+  integrity sha512-K1+T73geXgTfLyVBqcqznFlTBtbCLoH+yknhpZELqE/jH+klOQTXwglwMdR75aoUgv83LsDGhdu/q70g95obHA==
   dependencies:
     dot-json "^1.3.0"
     lodash.clonedeep "^4.5.0"

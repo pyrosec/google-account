@@ -65,11 +65,7 @@ export declare class GoogleAccountClient extends BasePuppeteer {
         proxyServer: any;
         city: any;
     }): Promise<{
-        Done: string;
-        success?: undefined;
-    } | {
         success: boolean;
-        Done?: undefined;
     }>;
     goToVoiceMessages(): Promise<void>;
     dumpVoice(): Promise<{

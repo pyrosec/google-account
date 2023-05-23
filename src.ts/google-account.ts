@@ -226,10 +226,10 @@ export class GoogleAccountClient extends BasePuppeteer {
   async enterPassword() {
     const page = this._page;
     this.logger.info("reauthenticate");
-    await page.type('input[type="password"]', this.password);
-    await page.click(
-      'div[role="presentation"] div[data-is-consent="false"] button'
-    );
+    await this.type({ selector: 'input[type="password"]', value: this.password, stealth: true });
+    await this.timeout({ n: 500 });
+    await this.click({ selector: 'div[role="presentation"] div[data-is-consent="false"] button' });
+    await this.timeout({ n: 500 });
   }
   async changePassword({
     newPassword
@@ -318,7 +318,7 @@ export class GoogleAccountClient extends BasePuppeteer {
       "https://myaccount.google.com/signinoptions/two-step-verification/enroll-welcome"
     );
     await timeout(5000);
-    await page.click('div[role="main"] button');
+    await this.click({ selector: 'div[role="main"] button' });
     await timeout(5000);
     if (await this.needsPassword()) {
       await this.enterPassword();
@@ -335,39 +335,32 @@ export class GoogleAccountClient extends BasePuppeteer {
     const number = await fetchOTP(
       async (number) => {
         await page.click('input[type="tel"]', { clickCount: 3 });
-        await page.type('input[type="tel"]', number);
-        await page.click(
-          "c-wiz > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1)"
-        );
+        await this.type({ selector: 'input[type="tel"]', value: number, stealth: true });
+        await this.click({ selector: "c-wiz > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1)" });
       },
       async () => {
-        await page.click(
-          'c-wiz > div > div > div:nth-child(3) div[role="button"]'
-        );
+        await this.click({ selector: 'c-wiz > div > div > div:nth-child(3) div[role="button"]' });
       }
     );
-    await page.type('input[type="text"][maxlength="8"]', number);
-    await page.click(
-      "c-wiz > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1)"
-    );
+    await this.type({ selector: 'input[type="text"][maxlength="8"]', value: number, stealth: true });
+    await this.timeout({ n: 800 });
+    await this.click({ selector: "c-wiz > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1)" });
     this.logger.info("entered OTP");
     await timeout(5000);
     this.logger.info("turning on 2FA");
-    await page.click(
-      "c-wiz > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2)"
-    );
+    await this.click({ selector: "c-wiz > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2)" });
     await timeout(5000);
     await this.getTotpSecret();
   }
   async getTotpSecret() {
     const page = this._page;
     await page.goto('https://myaccount.google.com/signinoptions/two-step-verification');
-    await page.waitForSelector('div[role="main"]');
-    await page.click('div[role="main"] > c-wiz > div > div > div > div:nth-child(12) > div:nth-child(3) a');
+    await this.waitForSelector({ selector: 'div[role="main"]' });
+    await this.click({ selector: 'div[role="main"] > c-wiz > div > div > div > div:nth-child(12) > div:nth-child(3) a' });
     await timeout(5000);
-    await page.click('div[role="main"] button');
-    await page.waitForSelector('center span');
-    await page.click('center span');
+    await this.click({ selector: 'div[role="main"] button' });
+    await this.waitForSelector({ selector: 'center span' });
+    await this.click({ selector: 'center span' });
     await timeout(500);
     const totpSecret = await page.evaluate(
       () =>
@@ -384,8 +377,8 @@ export class GoogleAccountClient extends BasePuppeteer {
         .filter((v) => v.innerText === "Next");
       (els[3] || els[1]).click();
     });
-    await timeout(100);
-    await page.type('input[type="text"]', t);
+    await timeout(800);
+    await this.type({ selector: 'input[type="text"]', value: t, stealth: true });
     await page.evaluate(() => {
       const els = [].slice
         .call(
@@ -417,11 +410,9 @@ export class GoogleAccountClient extends BasePuppeteer {
       [].slice.call((document.querySelectorAll('div[role="option"]') as any)).find((v) => v.innerText.match('Other')).click();
     });
     await timeout(1000);
-    await page.type('input[type="text"][aria-label="Enter custom name"]', "imap");
+    await this.type({ selector: 'input[type="text"][aria-label="Enter custom name"]', value: "imap", stealth: true });
     await timeout(1000);
-    await page.click(
-      'c-wiz > div > div:nth-child(3) > div > div > div:nth-child(3) > div:nth-child(3) div[role="button"]'
-    );
+    await this.click({ selector: 'c-wiz > div > div:nth-child(3) > div > div > div:nth-child(3) > div:nth-child(3) div[role="button"]' });
     await timeout(5000);
     const text = await page.evaluate(
       async () => ((document.querySelector("div[autofocus] span") as any) || {}).innerText || ''
@@ -462,7 +453,7 @@ export class GoogleAccountClient extends BasePuppeteer {
     let page = this._page;
     await page.goto("https://accounts.google.com");
     this.logger.info("load https://accounts.google.com");
-    await page.waitForSelector('button');
+    await this.waitForSelector({ selector: 'button' });
     await page.evaluate(async () => {
       document.querySelectorAll("button")[3].click();
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -474,12 +465,12 @@ export class GoogleAccountClient extends BasePuppeteer {
     this.logger.info("load new account form");
     await timeout(5000);
     const [firstName, lastName] = name.split(" ");
-    await page.type("input#firstName", firstName);
-    await page.type("input#lastName", lastName);
-    await page.type("#username", username);
-    await page.type("div#passwd input", password);
-    await page.type("div#confirm-passwd input", password);
-    await page.click("div#accountDetailsNext button");
+    await this.type({ selector: "input#firstName", value: firstName, stealth: true });
+    await this.type({ selector: "input#lastName", value: lastName, stealth: true });
+    await this.type({ selector: "#username", value: username, stealth: true });
+    await this.type({ selector: "div#passwd input", value: password, stealth: true });
+    await this.type({ selector: "div#confirm-passwd input", value: password, stealth: true });
+    await this.click({ selector: "div#accountDetailsNext button" });
     this.logger.info("filled account form");
     this.logger.info({ name, username });
     await timeout(5000);
@@ -491,18 +482,16 @@ export class GoogleAccountClient extends BasePuppeteer {
       await this.selectUS();
       const otp = await fetchOTP(
         async (number) => {
-          await page.type("input#phoneNumberId", number);
-          await page.click("button");
+          await this.type({ selector: "input#phoneNumberId", value: number, stealth: true });
+          await this.click({ selector: "button" });
         },
         async () => {
-          await page.click(
-            'div[data-primary-action-label="Verify"] > div > div:nth-child(2) button'
-          );
+          await this.click({ selector: 'div[data-primary-action-label="Verify"] > div > div:nth-child(2) button' });
         }
       );
       this.logger.info("got OTP!");
-      await page.type("input#code", otp);
-      await page.click("button");
+      await this.type({ selector: "input#code", value: otp, stealth: true });
+      await this.click({ selector: "button" });
     } else {
       const usernamenotGood = await page.evaluate(() => {
         const inputField = document.querySelector(".o6cuMc");
@@ -514,39 +503,48 @@ export class GoogleAccountClient extends BasePuppeteer {
     if(usernamenotGood){
       const textElement = await page.$eval('.o6cuMc', el => el.innerText);
       this.logger.error(textElement);
-      return {'Done': 'false'}
+      return {success:false}
     } 
     }
     this.logger.info("waiting ...");
-    await page.waitForSelector('input[name="recoveryEmail"]');
+    await this.waitForSelector({ selector: 'input[name="recoveryEmail"]' });
     await timeout(5000);
     recovery = recovery || username + "12@outllok.com";
     await page.evaluate((recovery) => {
       const [phone] = document.querySelectorAll("input");
       phone.value = "";
     });
-    await page.type('input[name="recoveryEmail"]', recovery);
-    await page.select("select#month", "1");
-    await page.type("input#day", "1");
-    await page.type("input#year", "1985");
-    await page.select("select#gender", "1");
+    await this.type({ selector: 'input[name="recoveryEmail"]', value: recovery, stealth: true });
+    await this.select({ selector: "select#month", value: "1" });
+    await this.type({ selector: "input#day", value: "1", stealth: true });
+    await this.type({ selector: "input#year", value: "1985", stealth: true });
+    await this.select({ selector: "select#gender", value: "1" });
     this.logger.info("filled out recovery form");
     this.logger.info({ recovery });
-    await page.click("button");
+    await this.click({ selector: "button" });
     await timeout(5000);
     this.logger.info("privacy settings");
-    await page.click("button");
+    await this.click({ selector: "button" });
     await timeout(500);
-    await page.evaluate(() => {
+    await page.evaluate(async () => {
       const els: any = document.querySelectorAll(
         'span div:nth-child(2) div:nth-child(1) div:nth-child(1) div[role="radio"]'
       );
       if ([].slice.call(els).length < 6) return;
-      els[1].click();
-      els[3].click();
-      els[5].click();
+      const timeout = async (n) => await new Promise((resolve) => setTimeout(resolve, n));
+      const convincingTimeout = async () => await timeout(250 + Math.floor(500*Math.random()));
+      const click = async (el) => {
+        await convincingTimeout();
+	el.scrollIntoView();
+	await convincingTimeout();
+	el.click();
+	await convincingTimeout();
+      };
+      await click(els[1]);
+      await click(els[3]);
+      await click(els[5]);
       const buttons = document.querySelectorAll("button");
-      buttons[3].click();
+      await click(buttons[3]);
     });
     await timeout(5000);
     if (enable2fa) {
