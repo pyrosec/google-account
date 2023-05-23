@@ -109,7 +109,11 @@ const getOTPFromSmsPinVerify = async function (token, fn, goBack, app: string = 
       };
       const result = await poll();
       if (!result) {
-        await goBack();
+        try {
+          await goBack();
+	} catch (e) {
+          this.logger.info('back button failed, trying anyway to proceed');
+	}
         await timeout(1000);
         continue;
       }
