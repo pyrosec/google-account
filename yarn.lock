@@ -285,7 +285,7 @@ balanced-match@^1.0.0:
 
 "base-puppeteer@https://github.com/pyrosec/base-puppeteer":
   version "0.1.0"
-  resolved "https://github.com/pyrosec/base-puppeteer#06f9509b7c63a160aefd802c29df1fab696eb82e"
+  resolved "https://github.com/pyrosec/base-puppeteer#015ec9c1ac895b40c4e777d13c2212efc802351e"
   dependencies:
     "@faker-js/faker" "^7.6.0"
     axios "^1.3.6"
