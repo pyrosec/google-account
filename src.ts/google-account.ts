@@ -458,7 +458,7 @@ export class GoogleAccountClient extends BasePuppeteer {
       "https://myaccount.google.com/signinoptions/two-step-verification"
     );
     await this.waitForSelector({ selector: 'div[role="main"] > c-wiz > div > div > div > div:nth-child(12) > div:nth-child(3) div[role="presentation"] a' });
-    await this.click({ selector: 'div[role="main"] > c-wiz > div > div > div > div:nth-child(12) > div:nth-child(3) div[role="presentation"] a' });
+    await this._page.click('div[role="main"] > c-wiz > div > div > div > div:nth-child(12) > div:nth-child(3) div[role="presentation"] a');
     await timeout(5000);
     await this.click({ selector: 'div[role="main"] button' });
     await this.waitForSelector({ selector: "center span" });
