@@ -709,7 +709,7 @@ export class GoogleAccountClient extends BasePuppeteer {
     }
     await timeout(5000);
     this.logger.info("waiting ...");
-    recovery = recovery || username + "12@outllok.com";
+    recovery = recovery || faker.internet.userName().toLowerCase() + String(Math.floor(Math.random()*100)) + "@outllok.com";
     const onlyRecoveryField =
       (await this.waitForSelectorFromList({
         selectors: ['input[name="recoveryEmail"]', 'input[name="recovery"]'],
